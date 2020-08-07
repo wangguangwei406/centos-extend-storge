@@ -1,0 +1,70 @@
+VirtualBox上Centos7磁盘扩容
+
+centos7中默认使用的是xfs文件系统,本文操作为扩大已有文件系统的容量
+
+扇区-->物理分区-->物理卷(pv)-->卷组(vg)-->逻辑卷(lv)-->文件系统
+
+1.查看文件系统容量可用情况: df -h
+
+
+
+2.查看现有磁盘和分区状况: fdisk -l
+
+
+
+3.给sda磁盘新建分区
+
+①执行命令 fdisk /dev/sda 发现报错
+
+
+
+②报错原因:没有可用的扇区
+
+
+
+③.问题解决:增加虚拟机可用磁盘空间
+
+将虚拟就可用磁盘扩大10G(记得先关闭虚拟机再操作此步骤)
+
+
+
+重新查看磁盘及分区使用状况发现可用扇区增加
+
+
+
+4.重新新建分区:fdisk /dev/sda
+
+
+
+
+
+
+
+5.使用命令mkfs.xfs /dev/sda4格式化新建的分区(格式化前需要先重启,命令reboot)
+
+6.把新加的硬盘分区创建为物理卷
+
+创建命令:pvcreate /dev/sda4
+
+
+
+查看命令:pvdisplay      
+
+
+
+7.将新建的物理卷(pv)添加到卷组(vg)
+
+查看命令:vgdisplay    扩展命令:vgextend centos /dev/sda4
+
+
+
+8.扩展逻辑卷(lv)
+
+查看命令:lvdisplay  扩展命令:lvextend -L +10G /dev/centos/root
+
+
+
+9.扩展文件系统
+
+查看命令:df -h   扩展命令:xfs_growfs /dev/centos/root(本命令只适用于xfs文件系统,可使用df -Th命令查看)
+
